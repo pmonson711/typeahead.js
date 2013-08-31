@@ -127,7 +127,7 @@ describe('Transport', function() {
 
       it('should set args for the on-deck request', function() {
         expect(this.transport.onDeckRequestArgs)
-        .toEqual(['http://example.com?q=bad', $.noop]);
+        .toEqual(['http://example.com?q=bad', $.noop, 'bad']);
       });
     });
 
@@ -150,11 +150,11 @@ describe('Transport', function() {
 
       it('should add response to the cache', function() {
         expect(this.requestCache.set)
-        .toHaveBeenCalledWith('http://example.com?q=has%20space', successData);
+        .toHaveBeenCalledWith('http://example.com?q=has%20space~~has space', successData);
       });
 
       it('should call filter', function() {
-        expect(this.transport.filter).toHaveBeenCalledWith(successData);
+        expect(this.transport.filter).toHaveBeenCalledWith(successData, 'has space');
       });
     });
 

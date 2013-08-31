@@ -22,6 +22,7 @@ var DropdownView = (function() {
 
     this.isOpen = false;
     this.isEmpty = true;
+    this.hasNoSelections = false;
     this.isMouseOverDropdown = false;
 
     this.$menu = $(o.menu)
@@ -133,7 +134,7 @@ var DropdownView = (function() {
     },
 
     isVisible: function() {
-      return this.isOpen && !this.isEmpty;
+      return (this.isOpen && !this.isEmpty) || this.hasNoSelections;
     },
 
     closeUnlessMouseIsOverDropdown: function() {
@@ -251,10 +252,28 @@ var DropdownView = (function() {
 
       // no suggestions to render
       else {
-        this.clearSuggestions(dataset.name);
+        if (!dataset.transport || (dataset.transport && dataset.transport.idle())) {
+            $el = this.noResultsEl('No Results');
+            $dataset.show().find('.tt-suggestions').html($el);
+        }
       }
 
       this.trigger('suggestionsRendered');
+    },
+
+    noResultsEl: function(noResultsText) {
+        var elBuilder, fragment, $el;
+
+        this.hasNoSelections = true;
+        this.isOpen && this._show();
+
+        elBuilder = document.createElement('p');
+        $el = $(elBuilder)
+        .css(css.suggestion)
+        .addClass('tt-no-suggestions')
+        .text(noResultsText);
+
+        return $el.get(0);
     },
 
     clearSuggestions: function(datasetName) {
@@ -268,6 +287,7 @@ var DropdownView = (function() {
 
       if (this._getSuggestions().length === 0) {
         this.isEmpty = true;
+        this.hasNoSelections = false;
         this._hide();
       }
     }

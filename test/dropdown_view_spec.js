@@ -524,19 +524,22 @@ describe('DropdownView', function() {
     describe('if there are no suggestions', function() {
       beforeEach(function() {
         this.dropdownView
-        .on('suggestionsRendered', this.spy = jasmine.createSpy());
+        .on('suggestionsRendered', this.suggestionspy = jasmine.createSpy());
+        this.dropdownView
+        .on('noResultsEl', this.spy = jasmine.createSpy());
 
         spyOn(this.dropdownView, 'clearSuggestions');
+        spyOn(this.dropdownView, 'noResultsEl');
 
         this.dropdownView.renderSuggestions(mockOldDataset, []);
       });
 
-      it('should call clearSuggestions', function() {
-        expect(this.dropdownView.clearSuggestions).toHaveBeenCalledWith('test');
+      it('should call noResultsEl', function() {
+          expect(this.dropdownView.noResultsEl).toHaveBeenCalledWith('No Results');
       });
 
       it('should trigger suggestionsRendered', function() {
-        expect(this.spy).toHaveBeenCalled();
+        expect(this.suggestionspy).toHaveBeenCalled();
       });
     });
 
