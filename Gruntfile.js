@@ -83,7 +83,11 @@ module.exports = function(grunt) {
         options: {
           specs: 'test/*_spec.js',
           helpers: 'test/helpers/*',
-          vendor: 'test/vendor/*'
+          vendor: 'test/vendor/*',
+          junit: {
+            path: "log/test-reports",
+            consolidate: true
+          }
         }
       }
     },
