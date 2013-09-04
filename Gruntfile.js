@@ -85,7 +85,7 @@ module.exports = function(grunt) {
           helpers: 'test/helpers/*',
           vendor: 'test/vendor/*',
           junit: {
-            path: "log/test-reports",
+            path: 'log/test-reports',
             consolidate: true
           }
         }
