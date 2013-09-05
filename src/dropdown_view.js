@@ -270,7 +270,7 @@ var DropdownView = (function() {
         elBuilder = document.createElement('p');
         $el = $(elBuilder)
         .css(css.suggestion)
-        .addClass('tt-no-suggestions')
+        .addClass('tt-no-suggestions tt-no-results')
         .text(noResultsText);
 
         return $el.get(0);

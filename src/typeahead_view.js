@@ -311,7 +311,7 @@ var TypeaheadView = (function() {
       backgroundPosition: $input.css('background-position'),
       backgroundRepeat: $input.css('background-repeat'),
       backgroundSize: $input.css('background-size')
-    });
+    }).addClass($input.attr('class'));
 
     // store the original values of the attrs that get modified
     // so modifications can be reverted on destroy

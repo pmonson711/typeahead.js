@@ -27,13 +27,13 @@ var Transport = (function() {
     this.replace = o.replace;
     this.requesting = false;
 
-    this.ajaxSettings = $.extend(o.ajaxSettings || {}, {
+    this.ajaxSettings = $.extend({
       type: o.method || 'get',
       cache: o.cache,
       timeout: o.timeout,
       dataType: o.dataType || 'json',
       beforeSend: o.beforeSend
-    });
+    }, o.ajaxSettings || {});
 
     this._get = (/^throttle$/i.test(o.rateLimitFn) ?
       utils.throttle : utils.debounce)(this._get, o.rateLimitWait || 300);
@@ -49,7 +49,7 @@ var Transport = (function() {
 
       // under the pending request threshold, so fire off a request
       if (belowPendingRequestsThreshold()) {
-        this._sendRequest(url, query).done(done);
+        this._sendRequest(url, query).done(done).then(that.ajaxSettings.then || $.noop);
       }
 
       // at the pending request threshold, so hang out in the on deck circle
@@ -71,34 +71,28 @@ var Transport = (function() {
     },
 
     _sendRequest: function(url, query) {
-      var that = this, key = that._cacheName(url, query), jqXhr = pendingRequests[key];
-
-      if (!jqXhr) {
-        incrementPendingRequests();
-        if (this.ajaxSettings.type && this.ajaxSettings.type.toLowerCase() !== 'get') {
-            jqXhr = pendingRequests[key] = $.ajax(url, $.extend({}, this.ajaxSettings, {
-                data:{
-                    'query':query
-                }
-            })).always(always);
-        } else {
-            jqXhr = pendingRequests[key] = $.ajax(url, this.ajaxSettings).always(always);
+        var that = this, key = that._cacheName(url, query), jqXhr = pendingRequests[key], fetchData = {};
+        if (!jqXhr) {
+            incrementPendingRequests();
+            if (this.ajaxSettings.type && this.ajaxSettings.type.toLowerCase() !== "get") {
+                fetchData[this.ajaxSettings.fetchAs || "q"] = query;
+                jqXhr = pendingRequests[key] = $.ajax(url, $.extend({}, this.ajaxSettings, {
+                    data: fetchData
+                })).always(always);
+            } else {
+                jqXhr = pendingRequests[key] = $.ajax(url, this.ajaxSettings).always(always);
+            }
         }
-      }
-
-      return jqXhr;
-
-      function always() {
-        that.requesting = false;
-        decrementPendingRequests();
-        pendingRequests[key] = null;
-
-        // ensures request is always made for the last query
-        if (that.onDeckRequestArgs) {
-          that._get.apply(that, that.onDeckRequestArgs);
-          that.onDeckRequestArgs = null;
+        return jqXhr;
+        function always() {
+            that.requesting = false;
+            decrementPendingRequests();
+            pendingRequests[key] = null;
+            if (that.onDeckRequestArgs) {
+                that._get.apply(that, that.onDeckRequestArgs);
+                that.onDeckRequestArgs = null;
+            }
         }
-      }
     },
 
     _cacheName: function(url, query) {

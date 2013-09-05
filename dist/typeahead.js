@@ -303,20 +303,20 @@
             this.filter = o.filter;
             this.replace = o.replace;
             this.requesting = false;
-            this.ajaxSettings = $.extend(o.ajaxSettings || {}, {
+            this.ajaxSettings = $.extend({
                 type: o.method || "get",
                 cache: o.cache,
                 timeout: o.timeout,
                 dataType: o.dataType || "json",
                 beforeSend: o.beforeSend
-            });
+            }, o.ajaxSettings || {});
             this._get = (/^throttle$/i.test(o.rateLimitFn) ? utils.throttle : utils.debounce)(this._get, o.rateLimitWait || 300);
         }
         utils.mixin(Transport.prototype, {
             _get: function(url, cb, query) {
                 var that = this;
                 if (belowPendingRequestsThreshold()) {
-                    this._sendRequest(url, query).done(done);
+                    this._sendRequest(url, query).done(done).then(that.ajaxSettings.then || $.noop);
                 } else {
                     this.onDeckRequestArgs = [].slice.call(arguments, 0);
                 }
@@ -327,14 +327,13 @@
                 }
             },
             _sendRequest: function(url, query) {
-                var that = this, key = that._cacheName(url, query), jqXhr = pendingRequests[key];
+                var that = this, key = that._cacheName(url, query), jqXhr = pendingRequests[key], fetchData = {};
                 if (!jqXhr) {
                     incrementPendingRequests();
                     if (this.ajaxSettings.type && this.ajaxSettings.type.toLowerCase() !== "get") {
+                        fetchData[this.ajaxSettings.fetchAs || "q"] = query;
                         jqXhr = pendingRequests[key] = $.ajax(url, $.extend({}, this.ajaxSettings, {
-                            data: {
-                                query: query
-                            }
+                            data: fetchData
                         })).always(always);
                     } else {
                         jqXhr = pendingRequests[key] = $.ajax(url, this.ajaxSettings).always(always);
@@ -865,7 +864,7 @@
                 this.hasNoSelections = true;
                 this.isOpen && this._show();
                 elBuilder = document.createElement("p");
-                $el = $(elBuilder).css(css.suggestion).addClass("tt-no-suggestions").text(noResultsText);
+                $el = $(elBuilder).css(css.suggestion).addClass("tt-no-suggestions tt-no-results").text(noResultsText);
                 return $el.get(0);
             },
             clearSuggestions: function(datasetName) {
@@ -1077,7 +1076,7 @@
                 backgroundPosition: $input.css("background-position"),
                 backgroundRepeat: $input.css("background-repeat"),
                 backgroundSize: $input.css("background-size")
-            });
+            }).addClass($input.attr("class"));
             $input.data("ttAttrs", {
                 dir: $input.attr("dir"),
                 autocomplete: $input.attr("autocomplete"),
