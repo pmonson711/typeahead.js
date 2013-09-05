@@ -302,57 +302,74 @@
             this.wildcard = o.wildcard || "%QUERY";
             this.filter = o.filter;
             this.replace = o.replace;
-            this.ajaxSettings = {
-                type: "get",
+            this.requesting = false;
+            this.ajaxSettings = $.extend(o.ajaxSettings || {}, {
+                type: o.method || "get",
                 cache: o.cache,
                 timeout: o.timeout,
                 dataType: o.dataType || "json",
                 beforeSend: o.beforeSend
-            };
+            });
             this._get = (/^throttle$/i.test(o.rateLimitFn) ? utils.throttle : utils.debounce)(this._get, o.rateLimitWait || 300);
         }
         utils.mixin(Transport.prototype, {
-            _get: function(url, cb) {
+            _get: function(url, cb, query) {
                 var that = this;
                 if (belowPendingRequestsThreshold()) {
-                    this._sendRequest(url).done(done);
+                    this._sendRequest(url, query).done(done);
                 } else {
                     this.onDeckRequestArgs = [].slice.call(arguments, 0);
                 }
                 function done(resp) {
-                    var data = that.filter ? that.filter(resp) : resp;
+                    var data = that.filter ? that.filter(resp, query) : resp;
                     cb && cb(data);
-                    requestCache.set(url, resp);
+                    requestCache.set(that._cacheName(url, query), resp);
                 }
             },
-            _sendRequest: function(url) {
-                var that = this, jqXhr = pendingRequests[url];
+            _sendRequest: function(url, query) {
+                var that = this, key = that._cacheName(url, query), jqXhr = pendingRequests[key];
                 if (!jqXhr) {
                     incrementPendingRequests();
-                    jqXhr = pendingRequests[url] = $.ajax(url, this.ajaxSettings).always(always);
+                    if (this.ajaxSettings.type && this.ajaxSettings.type.toLowerCase() !== "get") {
+                        jqXhr = pendingRequests[key] = $.ajax(url, $.extend({}, this.ajaxSettings, {
+                            data: {
+                                query: query
+                            }
+                        })).always(always);
+                    } else {
+                        jqXhr = pendingRequests[key] = $.ajax(url, this.ajaxSettings).always(always);
+                    }
                 }
                 return jqXhr;
                 function always() {
+                    that.requesting = false;
                     decrementPendingRequests();
-                    pendingRequests[url] = null;
+                    pendingRequests[key] = null;
                     if (that.onDeckRequestArgs) {
                         that._get.apply(that, that.onDeckRequestArgs);
                         that.onDeckRequestArgs = null;
                     }
                 }
             },
+            _cacheName: function(url, query) {
+                return [ url, "~~", query ].join("");
+            },
             get: function(query, cb) {
+                this.requesting = true;
                 var that = this, encodedQuery = encodeURIComponent(query || ""), url, resp;
                 cb = cb || utils.noop;
                 url = this.replace ? this.replace(this.url, encodedQuery) : this.url.replace(this.wildcard, encodedQuery);
-                if (resp = requestCache.get(url)) {
+                if (resp = requestCache.get(that._cacheName(url, query))) {
                     utils.defer(function() {
                         cb(that.filter ? that.filter(resp) : resp);
                     });
                 } else {
-                    this._get(url, cb);
+                    this._get(url, cb, query);
                 }
                 return !!resp;
+            },
+            idle: function() {
+                return !this.requesting && pendingRequestsCount === 0;
             }
         });
         return Transport;
@@ -704,6 +721,7 @@
             utils.bindAll(this);
             this.isOpen = false;
             this.isEmpty = true;
+            this.hasNoSelections = false;
             this.isMouseOverDropdown = false;
             this.$menu = $(o.menu).on("mouseenter.tt", this._handleMouseenter).on("mouseleave.tt", this._handleMouseleave).on("click.tt", ".tt-suggestion", this._handleSelection).on("mouseover.tt", ".tt-suggestion", this._handleMouseover);
         }
@@ -765,7 +783,7 @@
                 this.$menu = null;
             },
             isVisible: function() {
-                return this.isOpen && !this.isEmpty;
+                return this.isOpen && !this.isEmpty || this.hasNoSelections;
             },
             closeUnlessMouseIsOverDropdown: function() {
                 if (!this.isMouseOverDropdown) {
@@ -835,9 +853,20 @@
                     });
                     $dataset.show().find(".tt-suggestions").html(fragment);
                 } else {
-                    this.clearSuggestions(dataset.name);
+                    if (!dataset.transport || dataset.transport && dataset.transport.idle()) {
+                        $el = this.noResultsEl("No Results");
+                        $dataset.show().find(".tt-suggestions").html($el);
+                    }
                 }
                 this.trigger("suggestionsRendered");
+            },
+            noResultsEl: function(noResultsText) {
+                var elBuilder, fragment, $el;
+                this.hasNoSelections = true;
+                this.isOpen && this._show();
+                elBuilder = document.createElement("p");
+                $el = $(elBuilder).css(css.suggestion).addClass("tt-no-suggestions").text(noResultsText);
+                return $el.get(0);
             },
             clearSuggestions: function(datasetName) {
                 var $datasets = datasetName ? this.$menu.find(".tt-dataset-" + datasetName) : this.$menu.find('[class^="tt-dataset-"]'), $suggestions = $datasets.find(".tt-suggestions");
@@ -845,6 +874,7 @@
                 $suggestions.empty();
                 if (this._getSuggestions().length === 0) {
                     this.isEmpty = true;
+                    this.hasNoSelections = false;
                     this._hide();
                 }
             }
