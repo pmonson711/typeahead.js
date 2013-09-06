@@ -74,8 +74,8 @@ var Transport = (function() {
         var that = this, key = that._cacheName(url, query), jqXhr = pendingRequests[key], fetchData = {};
         if (!jqXhr) {
             incrementPendingRequests();
-            if (this.ajaxSettings.type && this.ajaxSettings.type.toLowerCase() !== "get") {
-                fetchData[this.ajaxSettings.fetchAs || "q"] = query;
+            if (this.ajaxSettings.type && this.ajaxSettings.type.toLowerCase() !== 'get') {
+                fetchData[this.ajaxSettings.fetchAs || 'q'] = query;
                 jqXhr = pendingRequests[key] = $.ajax(url, $.extend({}, this.ajaxSettings, {
                     data: fetchData
                 })).always(always);
