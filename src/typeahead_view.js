@@ -44,6 +44,9 @@ var TypeaheadView = (function() {
     utils.mixin(css.query, {
       backgroundImage: 'url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)'
     });
+    utils.mixin(css.hint, {
+        marginTop: '-2px'
+    });
   }
 
   // ie7 and under specific styling

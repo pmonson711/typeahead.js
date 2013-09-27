@@ -917,6 +917,9 @@
             utils.mixin(css.query, {
                 backgroundImage: "url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)"
             });
+            utils.mixin(css.hint, {
+                marginTop: "-2px"
+            });
         }
         if (utils.isMsie() && utils.isMsie() <= 7) {
             utils.mixin(css.wrapper, {
