@@ -72,7 +72,8 @@ describe('DropdownView', function() {
       this.$testDataset = renderTestDataset(this.dropdownView, true);
 
       this.$suggestion = this.$testDataset.find('.tt-suggestion:nth-child(1)');
-      this.$suggestion.click();
+      this.$suggestion.trigger("mousedown");
+      this.$suggestion.trigger("mouseup");
     });
 
     it('should trigger suggestionSelected', function() {

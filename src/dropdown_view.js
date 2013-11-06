@@ -28,7 +28,7 @@ var DropdownView = (function() {
     this.$menu = $(o.menu)
     .on('mouseenter.tt', this._handleMouseenter)
     .on('mouseleave.tt', this._handleMouseleave)
-    .on('click.tt', '.tt-suggestion', this._handleSelection)
+    .on('mousedown.tt', '.tt-suggestion', this._handleSelection)
     .on('mouseover.tt', '.tt-suggestion', this._handleMouseover);
   }
 
