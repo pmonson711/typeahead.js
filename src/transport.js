@@ -49,7 +49,7 @@ var Transport = (function() {
 
       // under the pending request threshold, so fire off a request
       if (belowPendingRequestsThreshold()) {
-        this._sendRequest(url, query).done(done).then(that.ajaxSettings.then || $.noop);
+        this._sendRequest(url, query).done(done).always(that.ajaxSettings.then || $.noop);
       }
 
       // at the pending request threshold, so hang out in the on deck circle
