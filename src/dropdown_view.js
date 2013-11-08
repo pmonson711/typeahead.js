@@ -262,7 +262,7 @@ var DropdownView = (function() {
     },
 
     noResultsEl: function(noResultsText) {
-        var elBuilder, fragment, $el;
+        var elBuilder, $el;
 
         this.hasNoSelections = true;
         this.isOpen && this._show();
