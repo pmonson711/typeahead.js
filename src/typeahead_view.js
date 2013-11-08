@@ -23,7 +23,11 @@ var TypeaheadView = (function() {
           boxShadow: 'none'
         },
         query: {
-          position: 'relative',
+          position: 'absolute',
+          top: '0',
+          left: '0',
+          right: '0',
+          left: '0',
           verticalAlign: 'top',
           backgroundColor: 'transparent'
         },
@@ -45,7 +49,7 @@ var TypeaheadView = (function() {
       backgroundImage: 'url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)'
     });
     utils.mixin(css.hint, {
-        marginTop: '-2px'
+        top: '-1px'
     });
   }
 
@@ -298,6 +302,8 @@ var TypeaheadView = (function() {
         $dropdown = $(html.dropdown),
         $input = $(input),
         $hint = $(html.hint);
+
+    css.wrapper.height = $input.outerHeight(true);
 
     $wrapper = $wrapper.css(css.wrapper);
     $dropdown = $dropdown.css(css.dropdown);

@@ -316,7 +316,7 @@
             _get: function(url, cb, query) {
                 var that = this;
                 if (belowPendingRequestsThreshold()) {
-                    this._sendRequest(url, query).done(done).then(that.ajaxSettings.then || $.noop);
+                    this._sendRequest(url, query).done(done).always(that.ajaxSettings.then || $.noop);
                 } else {
                     this.onDeckRequestArgs = [].slice.call(arguments, 0);
                 }
@@ -860,7 +860,7 @@
                 this.trigger("suggestionsRendered");
             },
             noResultsEl: function(noResultsText) {
-                var elBuilder, fragment, $el;
+                var elBuilder, $el;
                 this.hasNoSelections = true;
                 this.isOpen && this._show();
                 elBuilder = document.createElement("p");
@@ -901,7 +901,11 @@
                 boxShadow: "none"
             },
             query: {
-                position: "relative",
+                position: "absolute",
+                top: "0",
+                left: "0",
+                right: "0",
+                left: "0",
                 verticalAlign: "top",
                 backgroundColor: "transparent"
             },
@@ -918,7 +922,7 @@
                 backgroundImage: "url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)"
             });
             utils.mixin(css.hint, {
-                marginTop: "-2px"
+                top: "-1px"
             });
         }
         if (utils.isMsie() && utils.isMsie() <= 7) {
@@ -1068,6 +1072,7 @@
         return TypeaheadView;
         function buildDomStructure(input) {
             var $wrapper = $(html.wrapper), $dropdown = $(html.dropdown), $input = $(input), $hint = $(html.hint);
+            css.wrapper.height = $input.outerHeight(true);
             $wrapper = $wrapper.css(css.wrapper);
             $dropdown = $dropdown.css(css.dropdown);
             $hint.css(css.hint).css({
