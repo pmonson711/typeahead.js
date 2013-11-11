@@ -99,7 +99,7 @@ var TypeaheadView = (function() {
     .on('queryChanged whitespaceChanged', this._setLanguageDirection)
     .on('escKeyed', this._closeDropdown)
     .on('escKeyed', this._setInputValueToQuery)
-    .on('tabKeyed upKeyed downKeyed', this._managePreventDefault)
+    .on('enterKeyed upKeyed downKeyed', this._managePreventDefault)
     .on('upKeyed downKeyed', this._moveDropdownCursor)
     .on('upKeyed downKeyed', this._openDropdown)
     .on('tabKeyed leftKeyed rightKeyed', this._autocomplete);
@@ -111,15 +111,11 @@ var TypeaheadView = (function() {
 
     _managePreventDefault: function(e) {
       var $e = e.data,
-          hint,
-          inputValue,
           preventDefault = false;
 
       switch (e.type) {
-        case 'tabKeyed':
-          hint = this.inputView.getHintValue();
-          inputValue = this.inputView.getInputValue();
-          preventDefault = hint && hint !== inputValue;
+        case 'enterKeyed':
+          preventDefault = true;
           break;
 
         case 'upKeyed':
@@ -143,6 +139,7 @@ var TypeaheadView = (function() {
 
     _updateHint: function() {
       var suggestion = this.dropdownView.getFirstSuggestion(),
+          onlySuggestion = this.dropdownView.getOnlySuggestion(),
           hint = suggestion ? suggestion.value : null,
           dropdownIsVisible = this.dropdownView.isVisible(),
           inputHasOverflow = this.inputView.isOverflow(),
@@ -164,6 +161,9 @@ var TypeaheadView = (function() {
 
         this.inputView.setHintValue(inputValue + (match ? match[1] : ''));
       }
+      if (!match && onlySuggestion && dropdownIsVisible && !inputHasOverflow) {
+        this.inputView.setHintValue(inputValue + ' ' + onlySuggestion.value);
+      }
     },
 
     _clearHint: function() {
@@ -175,7 +175,19 @@ var TypeaheadView = (function() {
     },
 
     _setInputValueToQuery: function() {
-      this.inputView.setInputValue(this.inputView.getQuery());
+      var query, suggestion;
+      query = this.inputView.getQuery();
+      this.inputView.setInputValue(query);
+      suggestion = this.dropdownView.getFirstSuggestion();
+
+      // If our first suggestion is a case inverant match to our input, use that as our selection, PM
+      if (suggestion && query && (query.toLowerCase() === suggestion.value.toLowerCase())) {
+        this.inputView.setInputValue(suggestion.value);
+
+        this.eventBus.trigger('autocompleted',
+                              suggestion.datum,
+                              suggestion.dataset);
+      }
     },
 
     _setInputValueToSuggestionUnderCursor: function(e) {
@@ -205,7 +217,9 @@ var TypeaheadView = (function() {
     _handleSelection: function(e) {
       var byClick = e.type === 'suggestionSelected',
           suggestion = byClick ?
-            e.data : this.dropdownView.getSuggestionUnderCursor();
+            e.data : this.dropdownView.getSuggestionUnderCursor(),
+          onlySuggestion = this.dropdownView.getOnlySuggestion(),
+          preventDefault = e.data.type === 'enterKeyed';
 
       if (suggestion) {
         this.inputView.setInputValue(suggestion.value);
@@ -214,13 +228,18 @@ var TypeaheadView = (function() {
         // if triggered by keypress, prevent default browser behavior
         // which is most likely the submission of a form
         // note: e.data is the jquery event
-        byClick ? this.inputView.focus() : e.data.preventDefault();
+        byClick ? this.inputView.focus() : preventDefault ? e.data.preventDefault() : $.noop();
 
         // focus is not a synchronous event in ie, so we deal with it
         byClick && utils.isMsie() ?
           utils.defer(this.dropdownView.close) : this.dropdownView.close();
 
         this.eventBus.trigger('selected', suggestion.datum, suggestion.dataset);
+      } else if (onlySuggestion) {
+        utils.isMsie() ?
+          utils.defer(this.dropdownView.close) : this.dropdownView.close();
+        preventDefault ? e.data.preventDefault() : $.noop();
+        this.eventBus.trigger('selected', onlySuggestion.datum, onlySuggestion.dataset);
       }
     },
 

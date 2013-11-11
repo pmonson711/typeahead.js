@@ -28,7 +28,7 @@ var DropdownView = (function() {
     this.$menu = $(o.menu)
     .on('mouseenter.tt', this._handleMouseenter)
     .on('mouseleave.tt', this._handleMouseleave)
-    .on('click.tt', '.tt-suggestion', this._handleSelection)
+    .on('mousedown.tt', '.tt-suggestion', this._handleSelection)
     .on('mouseover.tt', '.tt-suggestion', this._handleMouseover);
   }
 
@@ -197,6 +197,13 @@ var DropdownView = (function() {
       var $suggestion = this._getSuggestions().first();
 
       return $suggestion.length > 0 ? extractSuggestion($suggestion) : null;
+    },
+
+    getOnlySuggestion: function() {
+      var $suggestions = this._getSuggestions(),
+          $suggestion = $suggestions.first();
+
+      return $suggestions.length === 1 ? extractSuggestion($suggestion) : null;
     },
 
     renderSuggestions: function(dataset, suggestions) {
