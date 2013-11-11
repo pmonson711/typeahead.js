@@ -254,7 +254,9 @@ var TypeaheadView = (function() {
       utils.each(this.datasets, function(i, dataset) {
         dataset.getSuggestions(query, function(suggestions) {
           // only render the suggestions if the query hasn't changed
-          if (query === that.inputView.getQuery()) {
+          if (query && suggestions && suggestions[0] && query.toLowerCase() === suggestions[0].value.toLowerCase()) {
+            that.eventBus.trigger('selected', suggestions[0].datum, suggestions[0].dataset);
+          } else if (query === that.inputView.getQuery()) {
             that.dropdownView.renderSuggestions(dataset, suggestions);
           }
         });
@@ -304,6 +306,9 @@ var TypeaheadView = (function() {
     },
 
     setQuery: function(query) {
+      if (query === this.inputView.getQuery()) {
+        return;
+      }
       this.inputView.setQuery(query);
       this.inputView.setInputValue(query);
 
