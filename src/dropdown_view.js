@@ -199,6 +199,13 @@ var DropdownView = (function() {
       return $suggestion.length > 0 ? extractSuggestion($suggestion) : null;
     },
 
+    getOnlySuggestion: function() {
+      var $suggestions = this._getSuggestions(),
+          $suggestion = $suggestions.first();
+
+      return $suggestions.length === 1 ? extractSuggestion($suggestion) : null;
+    },
+
     renderSuggestions: function(dataset, suggestions) {
       var datasetClassName = 'tt-dataset-' + dataset.name,
           wrapper = '<div class="tt-suggestion">%body</div>',

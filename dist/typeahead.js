@@ -829,6 +829,10 @@
                 var $suggestion = this._getSuggestions().first();
                 return $suggestion.length > 0 ? extractSuggestion($suggestion) : null;
             },
+            getOnlySuggestion: function() {
+                var $suggestions = this._getSuggestions(), $suggestion = $suggestions.first();
+                return $suggestions.length === 1 ? extractSuggestion($suggestion) : null;
+            },
             renderSuggestions: function(dataset, suggestions) {
                 var datasetClassName = "tt-dataset-" + dataset.name, wrapper = '<div class="tt-suggestion">%body</div>', compiledHtml, $suggestionsList, $dataset = this.$menu.find("." + datasetClassName), elBuilder, fragment, $el;
                 if ($dataset.length === 0) {
@@ -903,7 +907,6 @@
             query: {
                 position: "absolute",
                 top: "0",
-                left: "0",
                 right: "0",
                 left: "0",
                 verticalAlign: "top",
@@ -950,16 +953,14 @@
             this.inputView = new InputView({
                 input: $input,
                 hint: $hint
-            }).on("focused", this._openDropdown).on("blured", this._closeDropdown).on("blured", this._setInputValueToQuery).on("enterKeyed tabKeyed", this._handleSelection).on("queryChanged", this._clearHint).on("queryChanged", this._clearSuggestions).on("queryChanged", this._getSuggestions).on("whitespaceChanged", this._updateHint).on("queryChanged whitespaceChanged", this._openDropdown).on("queryChanged whitespaceChanged", this._setLanguageDirection).on("escKeyed", this._closeDropdown).on("escKeyed", this._setInputValueToQuery).on("tabKeyed upKeyed downKeyed", this._managePreventDefault).on("upKeyed downKeyed", this._moveDropdownCursor).on("upKeyed downKeyed", this._openDropdown).on("tabKeyed leftKeyed rightKeyed", this._autocomplete);
+            }).on("focused", this._openDropdown).on("blured", this._closeDropdown).on("blured", this._setInputValueToQuery).on("enterKeyed tabKeyed", this._handleSelection).on("queryChanged", this._clearHint).on("queryChanged", this._clearSuggestions).on("queryChanged", this._getSuggestions).on("whitespaceChanged", this._updateHint).on("queryChanged whitespaceChanged", this._openDropdown).on("queryChanged whitespaceChanged", this._setLanguageDirection).on("escKeyed", this._closeDropdown).on("escKeyed", this._setInputValueToQuery).on("enterKeyed upKeyed downKeyed", this._managePreventDefault).on("upKeyed downKeyed", this._moveDropdownCursor).on("upKeyed downKeyed", this._openDropdown).on("tabKeyed leftKeyed rightKeyed", this._autocomplete);
         }
         utils.mixin(TypeaheadView.prototype, EventTarget, {
             _managePreventDefault: function(e) {
-                var $e = e.data, hint, inputValue, preventDefault = false;
+                var $e = e.data, preventDefault = false;
                 switch (e.type) {
-                  case "tabKeyed":
-                    hint = this.inputView.getHintValue();
-                    inputValue = this.inputView.getInputValue();
-                    preventDefault = hint && hint !== inputValue;
+                  case "enterKeyed":
+                    preventDefault = true;
                     break;
 
                   case "upKeyed":
@@ -978,7 +979,7 @@
                 }
             },
             _updateHint: function() {
-                var suggestion = this.dropdownView.getFirstSuggestion(), hint = suggestion ? suggestion.value : null, dropdownIsVisible = this.dropdownView.isVisible(), inputHasOverflow = this.inputView.isOverflow(), inputValue, query, escapedQuery, beginsWithQuery, match;
+                var suggestion = this.dropdownView.getFirstSuggestion(), onlySuggestion = this.dropdownView.getOnlySuggestion(), hint = suggestion ? suggestion.value : null, dropdownIsVisible = this.dropdownView.isVisible(), inputHasOverflow = this.inputView.isOverflow(), inputValue, query, escapedQuery, beginsWithQuery, match;
                 if (hint && dropdownIsVisible && !inputHasOverflow) {
                     inputValue = this.inputView.getInputValue();
                     query = inputValue.replace(/\s{2,}/g, " ").replace(/^\s+/g, "");
@@ -986,6 +987,9 @@
                     beginsWithQuery = new RegExp("^(?:" + escapedQuery + ")(.*$)", "i");
                     match = beginsWithQuery.exec(hint);
                     this.inputView.setHintValue(inputValue + (match ? match[1] : ""));
+                }
+                if (!match && onlySuggestion && dropdownIsVisible && !inputHasOverflow) {
+                    this.inputView.setHintValue(inputValue + " " + onlySuggestion.value);
                 }
             },
             _clearHint: function() {
@@ -995,7 +999,14 @@
                 this.dropdownView.clearSuggestions();
             },
             _setInputValueToQuery: function() {
-                this.inputView.setInputValue(this.inputView.getQuery());
+                var query, suggestion;
+                query = this.inputView.getQuery();
+                this.inputView.setInputValue(query);
+                suggestion = this.dropdownView.getFirstSuggestion();
+                if (suggestion && query && query.toLowerCase() === suggestion.value.toLowerCase()) {
+                    this.inputView.setInputValue(suggestion.value);
+                    this.eventBus.trigger("autocompleted", suggestion.datum, suggestion.dataset);
+                }
             },
             _setInputValueToSuggestionUnderCursor: function(e) {
                 var suggestion = e.data;
@@ -1014,12 +1025,16 @@
                 }
             },
             _handleSelection: function(e) {
-                var byClick = e.type === "suggestionSelected", suggestion = byClick ? e.data : this.dropdownView.getSuggestionUnderCursor();
+                var byClick = e.type === "suggestionSelected", suggestion = byClick ? e.data : this.dropdownView.getSuggestionUnderCursor(), onlySuggestion = this.dropdownView.getOnlySuggestion(), preventDefault = e.data.type === "enterKeyed";
                 if (suggestion) {
                     this.inputView.setInputValue(suggestion.value);
-                    byClick ? this.inputView.focus() : e.data.preventDefault();
+                    byClick ? this.inputView.focus() : preventDefault ? e.data.preventDefault() : $.noop();
                     byClick && utils.isMsie() ? utils.defer(this.dropdownView.close) : this.dropdownView.close();
                     this.eventBus.trigger("selected", suggestion.datum, suggestion.dataset);
+                } else if (onlySuggestion) {
+                    utils.isMsie() ? utils.defer(this.dropdownView.close) : this.dropdownView.close();
+                    preventDefault ? e.data.preventDefault() : $.noop();
+                    this.eventBus.trigger("selected", onlySuggestion.datum, onlySuggestion.dataset);
                 }
             },
             _getSuggestions: function() {

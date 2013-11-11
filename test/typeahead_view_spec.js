@@ -401,10 +401,6 @@ describe('TypeaheadView', function() {
         expect(this.inputView.setInputValue).toHaveBeenCalled();
       });
 
-      it('should prevent default browser behavior', function() {
-        expect(this.$e.preventDefault).toHaveBeenCalled();
-      });
-
       it('should trigger typeahead:autocompleted on the input', function() {
         expect(this.spyEvent).toHaveBeenTriggered();
       });
@@ -424,10 +420,6 @@ describe('TypeaheadView', function() {
       it('should update input value', function() {
         expect(this.inputView.setInputValue)
         .toHaveBeenCalledWith('i am selected');
-      });
-
-      it('should prevent blur', function() {
-        expect(this.spy).toHaveBeenCalled();
       });
 
       it('should close dropdown', function() {
