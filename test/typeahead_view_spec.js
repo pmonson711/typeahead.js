@@ -47,7 +47,7 @@ describe('TypeaheadView', function() {
 
     it('should update input value', function() {
       expect(this.inputView.setInputValue)
-      .toHaveBeenCalledWith('i am selected');
+      .toHaveBeenCalledWith('i am selected', true);
     });
 
     it('should focus input', function() {
@@ -83,7 +83,7 @@ describe('TypeaheadView', function() {
       this.inputView.getQuery.andReturn('san   ');
       this.dropdownView.trigger('cursorRemoved');
 
-      expect(this.inputView.setInputValue).toHaveBeenCalledWith('san   ');
+      expect(this.inputView.setInputValue).toHaveBeenCalledWith('san   ', true);
     });
 
     _updateHintSpecHelper('dropdownView', 'cursorRemoved');
@@ -137,7 +137,7 @@ describe('TypeaheadView', function() {
     });
 
     it('should reset input value to user query', function() {
-      expect(this.inputView.setInputValue).toHaveBeenCalledWith('reset');
+      expect(this.inputView.setInputValue).toHaveBeenCalledWith('reset', true);
     });
   });
 
@@ -154,7 +154,7 @@ describe('TypeaheadView', function() {
 
     it('should update input value', function() {
       expect(this.inputView.setInputValue)
-      .toHaveBeenCalledWith('i am selected');
+      .toHaveBeenCalledWith('i am selected', true);
     });
 
     it('should prevent form submissions', function() {
@@ -272,7 +272,7 @@ describe('TypeaheadView', function() {
     });
 
     it('should reset input value to user query', function() {
-      expect(this.inputView.setInputValue).toHaveBeenCalledWith('reset');
+      expect(this.inputView.setInputValue).toHaveBeenCalledWith('reset', true);
     });
   });
 
@@ -419,7 +419,7 @@ describe('TypeaheadView', function() {
 
       it('should update input value', function() {
         expect(this.inputView.setInputValue)
-        .toHaveBeenCalledWith('i am selected');
+        .toHaveBeenCalledWith('i am selected', true);
       });
 
       it('should close dropdown', function() {

@@ -355,7 +355,7 @@
             },
             get: function(query, cb) {
                 this.requesting = true;
-                var that = this, encodedQuery = encodeURIComponent(query || ""), url, resp;
+                var that = this, encodedQuery = encodeURIComponent($.trim(query) || ""), url, resp;
                 cb = cb || utils.noop;
                 url = this.replace ? this.replace(this.url, encodedQuery) : this.url.replace(this.wildcard, encodedQuery);
                 if (resp = requestCache.get(that._cacheName(url, query))) {
@@ -1001,10 +1001,10 @@
             _setInputValueToQuery: function() {
                 var query, suggestion;
                 query = this.inputView.getQuery();
-                this.inputView.setInputValue(query);
+                this.inputView.setInputValue(query, true);
                 suggestion = this.dropdownView.getFirstSuggestion();
                 if (suggestion && query && query.toLowerCase() === suggestion.value.toLowerCase()) {
-                    this.inputView.setInputValue(suggestion.value);
+                    this.inputView.setInputValue(suggestion.value, true);
                     this.eventBus.trigger("autocompleted", suggestion.datum, suggestion.dataset);
                 }
             },
@@ -1027,7 +1027,7 @@
             _handleSelection: function(e) {
                 var byClick = e.type === "suggestionSelected", suggestion = byClick ? e.data : this.dropdownView.getSuggestionUnderCursor(), onlySuggestion = this.dropdownView.getOnlySuggestion(), preventDefault = e.data.type === "enterKeyed";
                 if (suggestion) {
-                    this.inputView.setInputValue(suggestion.value);
+                    this.inputView.setInputValue(suggestion.value, true);
                     byClick ? this.inputView.focus() : preventDefault ? e.data.preventDefault() : $.noop();
                     byClick && utils.isMsie() ? utils.defer(this.dropdownView.close) : this.dropdownView.close();
                     this.eventBus.trigger("selected", suggestion.datum, suggestion.dataset);
@@ -1065,7 +1065,7 @@
                 hint = this.inputView.getHintValue();
                 if (hint !== "" && query !== hint) {
                     suggestion = this.dropdownView.getFirstSuggestion();
-                    this.inputView.setInputValue(suggestion.value);
+                    this.inputView.setInputValue(suggestion.value, true);
                     this.eventBus.trigger("autocompleted", suggestion.datum, suggestion.dataset);
                 }
             },
@@ -1078,15 +1078,15 @@
                 destroyDomStructure(this.$node);
                 this.$node = null;
             },
-            setQuery: function(query) {
+            setQuery: function(query, silent) {
                 if (query === this.inputView.getQuery()) {
                     return;
                 }
                 this.inputView.setQuery(query);
-                this.inputView.setInputValue(query);
+                this.inputView.setInputValue(query, silent);
                 this._clearHint();
                 this._clearSuggestions();
-                this._getSuggestions();
+                !silent && this._getSuggestions();
             }
         });
         return TypeaheadView;
@@ -1177,11 +1177,11 @@
                     }
                 }
             },
-            setQuery: function(query) {
+            setQuery: function(query, silent) {
                 return this.each(setQuery);
                 function setQuery() {
                     var view = $(this).data(viewKey);
-                    view && view.setQuery(query);
+                    view && view.setQuery(query, silent);
                 }
             }
         };
