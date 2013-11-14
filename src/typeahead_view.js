@@ -180,12 +180,12 @@ var TypeaheadView = (function() {
     _setInputValueToQuery: function() {
       var query, suggestion;
       query = this.inputView.getQuery();
-      this.inputView.setInputValue(query);
+      this.inputView.setInputValue(query, true);
       suggestion = this.dropdownView.getFirstSuggestion();
 
       // If our first suggestion is a case inverant match to our input, use that as our selection, PM
       if (suggestion && query && (query.toLowerCase() === suggestion.value.toLowerCase())) {
-        this.inputView.setInputValue(suggestion.value);
+        this.inputView.setInputValue(suggestion.value, true);
 
         this.eventBus.trigger('autocompleted',
                               suggestion.datum,
@@ -225,7 +225,7 @@ var TypeaheadView = (function() {
           preventDefault = e.data.type === 'enterKeyed';
 
       if (suggestion) {
-        this.inputView.setInputValue(suggestion.value);
+        this.inputView.setInputValue(suggestion.value, true);
 
         // if triggered by click, ensure the query input still has focus
         // if triggered by keypress, prevent default browser behavior
@@ -279,7 +279,7 @@ var TypeaheadView = (function() {
 
       if (hint !== '' && query !== hint) {
         suggestion = this.dropdownView.getFirstSuggestion();
-        this.inputView.setInputValue(suggestion.value);
+        this.inputView.setInputValue(suggestion.value, true);
 
         this.eventBus.trigger(
           'autocompleted',
@@ -305,16 +305,16 @@ var TypeaheadView = (function() {
       this.$node = null;
     },
 
-    setQuery: function(query) {
+    setQuery: function(query, silent) {
       if (query === this.inputView.getQuery()) {
         return;
       }
       this.inputView.setQuery(query);
-      this.inputView.setInputValue(query);
+      this.inputView.setInputValue(query, silent);
 
       this._clearHint();
       this._clearSuggestions();
-      this._getSuggestions();
+      !silent && this._getSuggestions();
     }
   });
 

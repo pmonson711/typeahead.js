@@ -105,7 +105,7 @@ var Transport = (function() {
     get: function(query, cb) {
       this.requesting = true;
       var that = this,
-          encodedQuery = encodeURIComponent(query || ''),
+          encodedQuery = encodeURIComponent($.trim(query) || ''),
           url,
           resp;
 
