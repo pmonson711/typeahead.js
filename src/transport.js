@@ -103,7 +103,6 @@ var Transport = (function() {
     // --------------
 
     get: function(query, cb) {
-      this.requesting = true;
       var that = this,
           encodedQuery = encodeURIComponent($.trim(query) || ''),
           url,
@@ -122,6 +121,7 @@ var Transport = (function() {
       }
 
       else {
+        this.requesting = true;
         this._get(url, cb, query);
       }
 
