@@ -354,7 +354,6 @@
                 return [ url, "~~", query ].join("");
             },
             get: function(query, cb) {
-                this.requesting = true;
                 var that = this, encodedQuery = encodeURIComponent($.trim(query) || ""), url, resp;
                 cb = cb || utils.noop;
                 url = this.replace ? this.replace(this.url, encodedQuery) : this.url.replace(this.wildcard, encodedQuery);
@@ -363,6 +362,7 @@
                         cb(that.filter ? that.filter(resp) : resp);
                     });
                 } else {
+                    this.requesting = true;
                     this._get(url, cb, query);
                 }
                 return !!resp;
