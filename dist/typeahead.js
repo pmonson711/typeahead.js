@@ -403,6 +403,7 @@
             this.header = o.header;
             this.footer = o.footer;
             this.valueKey = o.valueKey || "value";
+            this.noResultsText = o.noResultsText || "No Results";
             this.template = compileTemplate(o.template, o.engine, this.valueKey);
             this.local = o.local;
             this.prefetch = o.prefetch;
@@ -857,7 +858,7 @@
                     $dataset.show().find(".tt-suggestions").html(fragment);
                 } else {
                     if (!dataset.transport || dataset.transport && dataset.transport.idle()) {
-                        $el = this.noResultsEl("No Results");
+                        $el = this.noResultsEl(dataset.noResultsText || "No Results");
                         $dataset.show().find(".tt-suggestions").html($el);
                     }
                 }
@@ -948,7 +949,8 @@
             $input = this.$node.find(".tt-query");
             $hint = this.$node.find(".tt-hint");
             this.dropdownView = new DropdownView({
-                menu: $menu
+                menu: $menu,
+                noResultsText: o.noResultsText
             }).on("suggestionSelected", this._handleSelection).on("cursorMoved", this._clearHint).on("cursorMoved", this._setInputValueToSuggestionUnderCursor).on("cursorRemoved", this._setInputValueToQuery).on("cursorRemoved", this._updateHint).on("suggestionsRendered", this._updateHint).on("opened", this._updateHint).on("closed", this._clearHint).on("opened closed", this._propagateEvent);
             this.inputView = new InputView({
                 input: $input,
