@@ -29,6 +29,7 @@ var Dataset = (function() {
     this.header = o.header;
     this.footer = o.footer;
     this.valueKey = o.valueKey || 'value';
+    this.noResultsText = o.noResultsText || 'No Results';
     this.template = compileTemplate(o.template, o.engine, this.valueKey);
 
     // used then deleted in #initialize
