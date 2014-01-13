@@ -260,7 +260,7 @@ var DropdownView = (function() {
       // no suggestions to render
       else {
         if (!dataset.transport || (dataset.transport && dataset.transport.idle())) {
-            $el = this.noResultsEl('No Results');
+            $el = this.noResultsEl(dataset.noResultsText || 'No Results');
             $dataset.show().find('.tt-suggestions').html($el);
         }
       }
